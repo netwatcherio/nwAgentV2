@@ -1,0 +1,23 @@
+[package]
+name = "nwAgentRust"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+trippy = "0.8.0"
+anyhow = "1.0.71"
+crossbeam = "0.8.2"
+itertools = "0.10.1"
+trust-dns-resolver = "*"
+parking_lot = "0.12.1"
+value-enum = "0.6.0"
+clap = "4.3.5"
+serde = "1.0.164"
+maxminddb = "0.23.0"
+indexmap = "1.9.3"
+dns-lookup = "2.0.1"
+nix = "0.26.2"
+serde_json = "1.0.97"
+rperf = "0.1.0"
