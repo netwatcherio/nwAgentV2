@@ -1,18 +1,72 @@
+use std::collections::HashMap;
+
+use bson::oid::ObjectId;
+use fastping_rs::Pinger;
+use fastping_rs::PingResult::{Idle, Receive};
+use log::{error, info, warn};
+use pretty_env_logger;
+use reqwest::Error;
+use serde::{Deserialize, Serialize};
+
 pub mod trace;
 pub mod geoip;
 pub mod caps;
 pub mod trippyLib;
 
-use log::{error, info, warn};
-
 pub mod dns;
-use fastping_rs::PingResult::{Idle, Receive};
-use fastping_rs::Pinger;
-use pretty_env_logger;
+mod webclient;
+mod pingLib;
 
-fn main() /*-> Result<()> */{
+#[derive(Serialize, Deserialize)]
+pub struct ApiRequest {
+    pin: Option<String>,
+    id: Option<String>,
+    data: Option<HashMap<String, String>>,
+    error: Option<String>,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "UPPERCASE")]
+pub enum CheckType {
+    Rperf,
+    Mtr,
+    Speedtest,
+    Netinfo,
+    Ping,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct CheckData {
+    target: Option<String>,
+    check_id: ObjectId,
+    agent_id: ObjectId,
+    triggered: Option<bool>,
+    result: Option<HashMap<String, String>>,
+    #[serde(rename = "type")]
+    check_type: CheckType,
+}
+
+// agent check struct
+#[derive(Serialize, Deserialize)]
+pub struct AgentCheck {
+    #[serde(rename = "type")]
+    check_type: CheckType,
+    target: Option<String>,
+    id: ObjectId,
+    agent_id: ObjectId,
+    duration: Option<i32>,
+    count: Option<i32>,
+    triggered: Option<bool>,
+    server: Option<bool>,
+    pending: Option<bool>,
+    interval: i32,
+}
+
+fn main() /*-> Result<()> */ {
     /*let json = trippyLib::Run()?;*/
 
+    pingLib::Ping("1.1.1.1").expect("TODO: panic message");
+    
     // todo
     /*
         fetch the json from the api
@@ -34,30 +88,7 @@ fn main() /*-> Result<()> */{
         rperf will also need to be included, and checks handled accordingly
      */
 
-    pretty_env_logger::init();
-    let (pinger, results) = match Pinger::new(None, Some(56)) {
-        Ok((pinger, results)) => (pinger, results),
-        Err(e) => panic!("Error creating pinger: {}", e),
-    };
 
-    pinger.add_ipaddr("8.8.8.8");
-    pinger.add_ipaddr("1.1.1.1");
-    pinger.run_pinger();
-
-    loop {
-        match results.recv() {
-            Ok(result) => match result {
-                Idle { addr } => {
-                    // log error to console
-                    error!("Idle Address {}.", addr);
-                }
-                Receive { addr, rtt } => {
-                    info!("Receive from Address {} in {:?}.", addr, rtt);
-                }
-            },
-            Err(_) => panic!("Worker threads disconnected before the solution was found!"),
-        }
-    }
     /*Ok(())*/
 }
 
